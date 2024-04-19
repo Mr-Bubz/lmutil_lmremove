@@ -15,6 +15,7 @@ The script:
 -lmutil lmremove is then executed one-by-one for selected user(s)
 
 -script gives user the option to run it again to check users are now removed
+
 ----------------------------------------------------------------
 
 Juan
