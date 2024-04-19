@@ -98,8 +98,8 @@ def parse_lmstat_output(file_path):
 
     return usernames, hostnames, displaynames
 
-def kick_off_tokens(selected_users, usernames, hostnames, displaynames, splm_license_server):
-    """Kick off token licenses for selected users."""
+def kick_off_tokens(selected_users, usernames, hostnames, displaynames, splm_license_server, lmutil_path):
+    """Kick token licenses from selected users."""
     for index in selected_users:
         try:
             print(f"Attempting to kick user {usernames[index]}")
@@ -108,6 +108,35 @@ def kick_off_tokens(selected_users, usernames, hostnames, displaynames, splm_lic
             print(f"Token license kicked off for user {usernames[index]}")
         except subprocess.CalledProcessError as e:
             print(f"Error kicking off token for user {usernames[index]}: {e}")
+
+def get_user_input():
+    """Get user input for selecting users to kick off token licenses."""
+    while True:
+        user_input = input("\nEnter the numbers of the users to kick off their token licenses (comma-separated, e.g., '1,2,3' or '1-3' or 'all'): ")
+
+        selected_users = []
+        try:
+            if user_input.lower() == 'all':
+                selected_users = list(range(len(usernames)))
+                break
+            else:
+                parts = user_input.split(',')
+                for part in parts:
+                    if '-' in part:
+                        start, end = map(int, part.split('-'))
+                        selected_users.extend(range(start-1, end))
+                    else:
+                        selected_users.append(int(part) - 1)
+
+                if any(index < 0 or index >= len(usernames) for index in selected_users):
+                    raise ValueError("Invalid user number. Please enter valid user numbers.")
+
+                break
+
+        except ValueError as e:
+            print(f"Error: {e}\nPlease enter valid user numbers.\n")
+
+    return selected_users
 
 def run_script_again():
     """Prompt user to run the script again."""
@@ -125,53 +154,26 @@ if __name__ == "__main__":
     while True:
         if not first_run:
             if run_script_again():
-
-
-            
                 print("\n------------------\n")
                 print("Running lmutil lmstat")
+
                 lmstat_output_file = run_lmstat(lmutil_path, splm_license_server)
 
                 print("\n------------------\n")
                 print("Listing current users")
                 usernames, hostnames, displaynames = parse_lmstat_output("C:\\temp\\lmremov\\temp.txt")
 
-                # Prompt user to select users to kick off their token licenses
-                while True:
-                    user_input = input("\nEnter the numbers of the users to kick off their token licenses (comma-separated, e.g., '1,2,3' or '1-3' or 'all'): ")
+                selected_users = get_user_input()
 
-                    selected_users = []
-                    try:
-                        if user_input.lower() == 'all':
-                            selected_users = list(range(len(usernames)))
-                            break
-                        else:
-                            parts = user_input.split(',')
-                            for part in parts:
-                                if '-' in part:
-                                    start, end = map(int, part.split('-'))
-                                    selected_users.extend(range(start-1, end))
-                                else:
-                                    selected_users.append(int(part) - 1)
-
-                            if any(index < 0 or index >= len(usernames) for index in selected_users):
-                                raise ValueError("Invalid user number. Please enter valid user numbers.")
-
-                            break
-
-                    except ValueError as e:
-                        print(f"Error: {e}\nPlease enter valid user numbers.\n")
-
-                kick_off_tokens(selected_users, usernames, hostnames, displaynames, splm_license_server)
+                kick_off_tokens(selected_users, usernames, hostnames, displaynames, splm_license_server, lmutil_path)
             else:
                 print("\nExiting the script.")
                 break
         else:
             first_run = False
             print("\n------------------\n")
-            print("Kick NX Token users utility, by Juan Coetzer")
+            print("Kick NX Token users utility")
             print("\n------------------\n")
- 
             print("Startup checks") 
  
             lmutil_path = check_lmutil_path()
@@ -179,7 +181,6 @@ if __name__ == "__main__":
 
             print("Startup checks complete")
 
- 
             print("\n------------------\n")
             print("Running lmutil lmstat")
             lmstat_output_file = run_lmstat(lmutil_path, splm_license_server)
@@ -188,35 +189,8 @@ if __name__ == "__main__":
             print("Listing current users")
             usernames, hostnames, displaynames = parse_lmstat_output("C:\\temp\\lmremov\\temp.txt")
 
-            # Prompt user to select users to kick off their token licenses
-            while True:
-                user_input = input("\nEnter the numbers of the users to kick off their token licenses (comma-separated, e.g., '1,2,3' or '1-3' or 'all'): ")
+            selected_users = get_user_input()
 
-                selected_users = []
-                try:
-                    if user_input.lower() == 'all':
-                        selected_users = list(range(len(usernames)))
-                        break
-                    else:
-                        parts = user_input.split(',')
-                        for part in parts:
-                            if '-' in part:
-                                start, end = map(int, part.split('-'))
-                                selected_users.extend(range(start-1, end))
-                            else:
-                                selected_users.append(int(part) - 1)
+            kick_off_tokens(selected_users, usernames, hostnames, displaynames, splm_license_server, lmutil_path)
 
-                        if any(index < 0 or index >= len(usernames) for index in selected_users):
-                            raise ValueError("Invalid user number. Please enter valid user numbers.")
-
-                        break
-
-                except ValueError as e:
-                    print(f"Error: {e}\nPlease enter valid user numbers.\n")
-
-            kick_off_tokens(selected_users, usernames, hostnames, displaynames, splm_license_server)
-
- 
     print("License removal complete")
-    
-    
