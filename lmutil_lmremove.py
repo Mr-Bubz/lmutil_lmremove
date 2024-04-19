@@ -173,6 +173,7 @@ if __name__ == "__main__":
             first_run = False
             print("\n------------------\n")
             print("Kick NX Token users utility")
+            print("source code: https://github.com/Mr-Bubz/lmutil_lmremove")
             print("\n------------------\n")
             print("Startup checks") 
  
