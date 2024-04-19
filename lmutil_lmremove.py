@@ -2,6 +2,7 @@ import os
 import sys
 import re
 import subprocess
+import time
 
 def check_lmutil_path():
     """Check for lmutil.exe in UGFLEXLM directory or PATH environment variable."""
@@ -24,6 +25,7 @@ def check_lmutil_path():
 
     print("lmutil.exe not found.")
     print("Please add the directory containing lmutil.exe to the PATH environment variable manually.")
+    time.sleep(5)
     sys.exit(1)
 
 def check_splm_license_server():
@@ -33,6 +35,7 @@ def check_splm_license_server():
     if not splm_license_server:
         print("SPLM_LICENSE_SERVER environment variable not set.")
         print("Please set the SPLM_LICENSE_SERVER environment variable.")
+        time.sleep(5)
         sys.exit(1)
 
     print("SPLM_LICENSE_SERVER environment variable set to ", splm_license_server)
@@ -52,6 +55,7 @@ def run_lmstat(lmutil_path, splm_license_server):
 
     except subprocess.CalledProcessError as e:
         print(f"Error running lmutil: {e}")
+        time.sleep(5)
         sys.exit(1)
 
 def parse_lmstat_output(file_path):
@@ -84,6 +88,12 @@ def parse_lmstat_output(file_path):
                     if match_license_num:
                         license_nums.append(match_license_num.group(1))
 
+        # Check if no users are currently holding an nx_design_token license
+        if not usernames:
+            print("No users are currently pulling an nx_design_token license on", splm_license_server)
+            time.sleep(5)  # Delay for 5 seconds
+            sys.exit(0)
+
         print(f"{'#':<5} {'Username':<20} {'Hostname':<20} {'Displayname':<20} {'Featurename':<30} {'Start Time':<20} {'License Number':<15}")
         print("-" * 120)
         for i, (username, hostname, displayname, featurename, start_time, license_num) in enumerate(zip(usernames, hostnames, displaynames, featurenames, start_times, license_nums), 1):
@@ -91,9 +101,11 @@ def parse_lmstat_output(file_path):
 
     except FileNotFoundError:
         print("Error: File not found.")
+        time.sleep(5)
         sys.exit(1)
     except Exception as e:
         print(f"An error occurred: {e}")
+        time.sleep(5)
         sys.exit(1)
 
     return usernames, hostnames, displaynames
@@ -161,7 +173,7 @@ if __name__ == "__main__":
 
                 print("\n------------------\n")
                 print("Listing current users")
-                usernames, hostnames, displaynames = parse_lmstat_output("C:\\temp\\lmremov\\temp.txt")
+                usernames, hostnames, displaynames = parse_lmstat_output(lmstat_output_file)
 
                 selected_users = get_user_input()
 
@@ -188,7 +200,7 @@ if __name__ == "__main__":
 
             print("\n------------------\n")
             print("Listing current users")
-            usernames, hostnames, displaynames = parse_lmstat_output("C:\\temp\\lmremov\\temp.txt")
+            usernames, hostnames, displaynames = parse_lmstat_output(lmstat_output_file)
 
             selected_users = get_user_input()
 
